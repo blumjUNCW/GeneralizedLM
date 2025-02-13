@@ -94,3 +94,40 @@ proc logistic data=heartSTD;
 	model chol_status = AgeAtStart Weight / link=alogit unequalslopes=weight;
 	ods select ResponseProfile ParameterEstimates OddsRatios;
 run;
+
+/***What if we want to use bp_status (along with age and weight) as a predictor for chol_status?**/
+proc logistic data=heartSTD;
+	format chol_status $CholReOrder.;
+	class bp_status(ref='High') / param=glm;
+	model chol_status = bp_status AgeAtStart Weight / link=logit;
+	ods select ResponseProfile ParameterEstimates OddsRatios;
+run;/**proportional odds is fine for this...**/
+
+proc logistic data=heartSTD;
+	format chol_status $CholReOrder.;
+	class bp_status / param=glm;
+	model chol_status = bp_status AgeAtStart Weight / link=alogit;
+	ods select ResponseProfile ParameterEstimates OddsRatios;
+run;
+
+proc logistic data=heartSTD;
+	format chol_status $CholReOrder.;
+	class bp_status(ref='High') / param=glm;
+	model chol_status = bp_status|AgeAtStart|Weight @2 / link=logit;
+	*ods select ResponseProfile ParameterEstimates OddsRatios;
+run;
+
+proc logistic data=heartSTD;
+	format chol_status $CholReOrder.;
+	class bp_status(ref='High') / param=glm;
+	model chol_status = bp_status|AgeAtStart AgeAtStart|Weight / link=logit;
+	*ods select ResponseProfile ParameterEstimates OddsRatios;
+run;
+
+
+proc logistic data=heartSTD;
+	format chol_status $CholReOrder.;
+	class bp_status(ref='High') / param=glm;
+	model chol_status = bp_status AgeAtStart|Weight / link=logit;
+	*ods select ResponseProfile ParameterEstimates OddsRatios;
+run;
