@@ -26,3 +26,10 @@ proc logistic data=standardized order=internal;
   model hloffer  = cohort rate control;
 	*ods select responseProfile ParameterEstimates OddsRatios;
 run;
+
+proc logistic data=standardized;
+	format hloffer offer.;
+	class control / param=glm;
+  model hloffer(order=internal)  = cohort rate control;
+	*ods select responseProfile ParameterEstimates OddsRatios;
+run;
