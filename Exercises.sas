@@ -15,3 +15,112 @@ proc logistic data=mydata.cdi descending;
 run;
 
 /**Do Exercises 3, 5, & 6**/
+/**3**/
+proc format;
+	value babs
+	20-high = 'High BA/BS'
+	other = 'Low BA/BS'
+	;
+run;
+
+data cdi;
+	set mydata.cdi;
+	popDensity = (pop/land)/100;
+  crimeRate = (crimes/pop)*100;
+run;
+
+proc logistic data=cdi;
+	class region / param=glm;
+	model ba_bs = region over65 popDensity crimeRate;
+	format ba_bs babs.;
+	ods select modelInfo ResponseProfile ParameterEstimates OddsRatios;
+run;
+
+/**5**/
+ods trace on;
+proc logistic data=mydata.cdi;
+	model region = ba_bs inc_per_cap pop18_34 / link=glogit;
+	ods select modelInfo ResponseProfile ModelANOVA  OddsRatios;
+run;
+
+proc standard data=mydata.cdi out=cdiStd mean=0 std=1;
+	var inc_per_cap;
+run;
+
+proc logistic data=cdiStd;
+	model region = ba_bs inc_per_cap pop18_34 / link=glogit;
+	ods select modelInfo ResponseProfile ModelANOVA  OddsRatios;
+	output out=predict predprobs=(I);
+run;
+proc freq data=predict;
+	table _from_*_into_;
+run;
+
+/*6*/
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool;
+	*ods select modelInfo ResponseProfile ParameterEstimates OddsRatios;
+run;
+
+Title 'Proportional Odds';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool;
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(sq_ft)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(sq_ft);
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(price)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(price);
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(pool)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(pool);
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(sq_ft price)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(sq_ft price);
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(sq_ft pool)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(sq_ft pool);
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(price pool)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(price pool);
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(sq_ft price pool)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(sq_ft price pool);
+	ods select fitstatistics;
+run;
+
+Title 'SBC says use: unequalslopes=(price)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(price);
+	ods select ParameterEstimates ResponseProfile OddsRatios;
+run;
+
+Title 'AIC says use: unequalslopes=(sq_ft price)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(sq_ft price) link=alogit;
+	ods select ParameterEstimates OddsRatios;
+run;
+
+/**For these two models, and the proportional odds model,
+		check the classification rates and see what they tell you about which one you'd choose**/
