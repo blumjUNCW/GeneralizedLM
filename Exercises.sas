@@ -1,4 +1,4 @@
-libname mydata '/export/viya/homes/blumj@uncw.edu/GenLM';
+libname mydata '~/GenLM';
 
 proc format;
 	value pov
@@ -58,7 +58,8 @@ run;
 
 /*6*/
 proc logistic data=mydata.realestate;
-	model quality = sq_ft price pool;
+	class pool(ref='0') / param=glm;
+	model quality = sq_ft price pool ;
 	*ods select modelInfo ResponseProfile ParameterEstimates OddsRatios;
 run;
 
@@ -199,7 +200,7 @@ proc logistic data=mydata.realestate;
 run;
 
 proc logistic data=mydata.realestate;
-	model quality = sq_ft price pool /  link=glogit;
+	model quality = sq_ft price /  link=glogit;
 	ods select none;
 	output out=AnotherB predprobs=(I);
 run;
@@ -210,5 +211,15 @@ proc freq data=Another;
 run;
 Title 'Another Choice: GLOGIT (remove pool)';
 proc freq data=AnotherB;
+	table _from_*_into_;
+run;
+Title 'SBC says: unequalslopes=(price)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price / unequalslopes=(price);
+	*ods select none;
+	output out=SBC2 predprobs=(I);
+run;
+ods select all;
+proc freq data=SBC2;
 	table _from_*_into_;
 run;
