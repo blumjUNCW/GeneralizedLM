@@ -62,7 +62,53 @@ proc logistic data=mydata.realestate;
 	*ods select modelInfo ResponseProfile ParameterEstimates OddsRatios;
 run;
 
+Title 'Proportional Odds';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool;
+	ods select fitstatistics;
+run;
 
+Title 'unequalslopes=(sq_ft)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(sq_ft);
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(price)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(price);
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(pool)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(pool);
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(sq_ft price)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(sq_ft price);
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(sq_ft pool)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(sq_ft pool);
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(price pool)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(price pool);
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(sq_ft price pool)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(sq_ft price pool);
+	ods select fitstatistics;
+run;
 
 Title 'SBC says use: unequalslopes=(price)';
 proc logistic data=mydata.realestate;
@@ -127,6 +173,7 @@ proc sgpanel data=mydata.realestate;
 	scatter x=sq_ft y=price / group=quality;
 run;
 
+/**Remove Pool First...**/
 Title 'Proportional Odds';
 proc logistic data=mydata.realestate;
 	model quality = sq_ft price;
