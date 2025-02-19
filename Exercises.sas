@@ -62,65 +62,106 @@ proc logistic data=mydata.realestate;
 	*ods select modelInfo ResponseProfile ParameterEstimates OddsRatios;
 run;
 
-Title 'Proportional Odds';
-proc logistic data=mydata.realestate;
-	model quality = sq_ft price pool;
-	ods select fitstatistics;
-run;
 
-Title 'unequalslopes=(sq_ft)';
-proc logistic data=mydata.realestate;
-	model quality = sq_ft price pool / unequalslopes=(sq_ft);
-	ods select fitstatistics;
-run;
-
-Title 'unequalslopes=(price)';
-proc logistic data=mydata.realestate;
-	model quality = sq_ft price pool / unequalslopes=(price);
-	ods select fitstatistics;
-run;
-
-Title 'unequalslopes=(pool)';
-proc logistic data=mydata.realestate;
-	model quality = sq_ft price pool / unequalslopes=(pool);
-	ods select fitstatistics;
-run;
-
-Title 'unequalslopes=(sq_ft price)';
-proc logistic data=mydata.realestate;
-	model quality = sq_ft price pool / unequalslopes=(sq_ft price);
-	ods select fitstatistics;
-run;
-
-Title 'unequalslopes=(sq_ft pool)';
-proc logistic data=mydata.realestate;
-	model quality = sq_ft price pool / unequalslopes=(sq_ft pool);
-	ods select fitstatistics;
-run;
-
-Title 'unequalslopes=(price pool)';
-proc logistic data=mydata.realestate;
-	model quality = sq_ft price pool / unequalslopes=(price pool);
-	ods select fitstatistics;
-run;
-
-Title 'unequalslopes=(sq_ft price pool)';
-proc logistic data=mydata.realestate;
-	model quality = sq_ft price pool / unequalslopes=(sq_ft price pool);
-	ods select fitstatistics;
-run;
 
 Title 'SBC says use: unequalslopes=(price)';
 proc logistic data=mydata.realestate;
 	model quality = sq_ft price pool / unequalslopes=(price);
-	ods select ParameterEstimates ResponseProfile OddsRatios;
+	*ods select ParameterEstimates ResponseProfile OddsRatios;
 run;
 
 Title 'AIC says use: unequalslopes=(sq_ft price)';
 proc logistic data=mydata.realestate;
 	model quality = sq_ft price pool / unequalslopes=(sq_ft price) link=alogit;
-	ods select ParameterEstimates OddsRatios;
+	*ods select ParameterEstimates OddsRatios;
 run;
 
 /**For these two models, and the proportional odds model,
 		check the classification rates and see what they tell you about which one you'd choose**/
+Title 'Proportional Odds';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool;
+	ods select none;
+	output out=Default predprobs=(I);
+run;
+ods select all;
+proc freq data=default;
+	table _from_*_into_;
+run;
+
+Title 'SBC says use: unequalslopes=(price)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(price);
+	ods select none;
+	output out=SBC predprobs=(I);
+run;
+ods select all;
+proc freq data=SBC;
+	table _from_*_into_;
+run;
+
+Title 'AIC says use: unequalslopes=(sq_ft price)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool / unequalslopes=(sq_ft price) link=alogit;
+	ods select none;
+	output out=AIC predprobs=(I);
+run;
+ods select all;
+proc freq data=AIC;
+	table _from_*_into_;
+run;
+
+Title 'Another Choice: GLOGIT';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool /  link=glogit;
+	ods select none;
+	output out=Another predprobs=(I);
+run;
+ods select all;
+proc freq data=Another;
+	table _from_*_into_;
+run;
+
+proc sgpanel data=mydata.realestate;
+	panelby pool;
+	scatter x=sq_ft y=price / group=quality;
+run;
+
+Title 'Proportional Odds';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price;
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(sq_ft)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price / unequalslopes=(sq_ft);
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(price)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price / unequalslopes=(price);
+	ods select fitstatistics;
+run;
+
+Title 'unequalslopes=(sq_ft price)';
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price  / unequalslopes=(sq_ft price);
+	ods select fitstatistics;
+run;
+
+proc logistic data=mydata.realestate;
+	model quality = sq_ft price pool /  link=glogit;
+	ods select none;
+	output out=AnotherB predprobs=(I);
+run;
+ods select all;
+Title 'Another Choice: GLOGIT';
+proc freq data=Another;
+	table _from_*_into_;
+run;
+Title 'Another Choice: GLOGIT (remove pool)';
+proc freq data=AnotherB;
+	table _from_*_into_;
+run;
