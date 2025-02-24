@@ -120,4 +120,70 @@ proc glm data=sashelp.heart;
 run;
 
 
+ods graphics off;
+proc glm data=sashelp.heart;
+	class bp_status sex;
+	model cholesterol = bp_status|sex / solution;
+	lsmeans bp_status sex / diff adjust=tukey;
+	/**when an interaction is present, we typically do 
+		not analyze the individual effects (main effects)
+		because we no longer presume they are additive**/
+run;
 
+proc glm data=sashelp.heart;
+	class bp_status sex;
+	model cholesterol = bp_status|sex / solution;
+	lsmeans bp_status*sex;
+	/**look at a plot of the means...**/
+	ods output lsmeans=means;
+run;
+
+proc sgplot data=means;
+	series x=bp_status y=lsmean / group=sex markers;
+run;
+
+ods graphics off;
+proc glm data=sashelp.heart;
+	class bp_status sex;
+	model cholesterol = bp_status|sex / solution;
+	lsmeans bp_status*sex / slice=bp_status slice=sex;
+		/**slice=effect -- creates a comparison at each level of the listed effect, 
+				comparison is across other effect(s) present in the interaction*/
+	lsmeans bp_status*sex / diff adjust=tukey lines;
+		/**can also ask for all pairwise comparisons among all combinations
+			defined by the interaction
+			But this often adjusts for things you do not care about...**/
+	ods select lsmeans slicedanova lsmlines;
+run;
+
+ods graphics off;
+proc glm data=sashelp.heart;
+	class bp_status sex;
+	model cholesterol = bp_status|sex / solution;
+	lsmeans bp_status*sex / slice=bp_status slice=sex;
+	lsmeans bp_status*sex / diff ;
+	lsmeans bp_status*sex / diff adjust=bon alpha=0.10 lines;
+	ods select lsmeans slicedanova diff lsmlines;
+run;
+
+ods graphics off;
+proc glm data=sashelp.heart;
+	class bp_status sex weight_status;
+	model cholesterol = bp_status|sex|weight_status;
+	lsmeans bp_status*sex / slice=bp_status slice=sex;
+	lsmeans weight_status / diff adjust=tukey;
+run;
+
+ods graphics off;
+/**Don't need this in this case, but legal...**/
+proc glm data=sashelp.heart;
+	class bp_status sex weight_status;
+	model cholesterol = bp_status|sex|weight_status;
+	lsmeans bp_status*sex*weight_status / slice=bp_status*sex slice=sex*weight_status slice=bp_status*weight_status;
+	ods output lsmeans=means;
+run;
+
+proc sgpanel data=means;
+	panelby sex;
+ 	series x=bp_status y=CholesterolLSMean / group=weight_status markers;
+run;
