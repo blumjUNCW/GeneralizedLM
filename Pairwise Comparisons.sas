@@ -167,6 +167,16 @@ proc glm data=sashelp.heart;
 run;
 
 ods graphics off;
+proc mixed data=sashelp.heart;
+	class bp_status sex weight_status;
+	model cholesterol = bp_status|sex;
+	slice bp_status*sex  / sliceby=sex diff adjust=tukey ;
+	slice bp_status*sex / sliceby=bp_status diff ;
+	/**slice statement is available in mixed**/
+run;
+
+
+ods graphics off;
 proc glm data=sashelp.heart;
 	class bp_status sex weight_status;
 	model cholesterol = bp_status|sex|weight_status;
