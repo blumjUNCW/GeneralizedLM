@@ -130,3 +130,80 @@ proc logistic data=mydata.cdi;
 	lsmeans region / exp diff adjust=tukey at ba_bs=20 lines;
 	lsmeans region / exp diff adjust=tukey at ba_bs=25 lines;
 run;
+
+proc means data=mydata.cdi min q1 median mean q3 max;
+	class region;
+	var ba_bs over65;
+run;
+
+ods graphics off;
+proc logistic data=mydata.cdi;
+	class region / param=glm;
+	format poverty poverty.;
+	model poverty = region|ba_bs|over65 @2;
+	lsmeans region / exp diff adjust=tukey at over65=9 lines;
+	lsmeans region / exp diff adjust=tukey at over65=11 lines;
+	lsmeans region / exp diff adjust=tukey at over65=13 lines;
+run;
+
+ods graphics off;
+proc logistic data=mydata.cdi;
+	class region / param=glm;
+	format poverty poverty.;
+	model poverty = region|ba_bs|over65 @2;
+	estimate 'BA-BS Effect, Region 1 vs Region 2' ba_bs*region 1 -1 0 0 / exp;
+	estimate 'BA-BS Effect, Region 1 vs Region 3' ba_bs*region 1 0 -1 0 / exp;
+	estimate 'BA-BS Effect, Region 1 vs Region 4' ba_bs*region 1 0 0 -1 / exp;
+	estimate 'BA-BS Effect, Region 2 vs Region 3' ba_bs*region 0 1 -1 0 / exp;
+	estimate 'BA-BS Effect, Region 2 vs Region 4' ba_bs*region 0 1 0 -1 / exp;
+	estimate 'BA-BS Effect, Region 3 vs Region 4' ba_bs*region 0 0 1 -1 / exp;
+run;
+
+ods graphics off;
+proc logistic data=mydata.cdi;
+	class region / param=glm;
+	format poverty poverty.;
+	model poverty = region|ba_bs|over65 @2;
+	estimate 'Over 65 Effect, Region 1 vs Region 2'over65*region 1 -1 0 0 / exp;
+	estimate 'Over 65 Effect, Region 1 vs Region 3'over65*region 1 0 -1 0 / exp;
+	estimate 'Over 65 Effect, Region 1 vs Region 4'over65*region 1 0 0 -1 / exp;
+	estimate 'Over 65 Effect, Region 2 vs Region 3'over65*region 0 1 -1 0 / exp;
+	estimate 'Over 65 Effect, Region 2 vs Region 4'over65*region 0 1 0 -1 / exp;
+	estimate 'Over 65 Effect, Region 3 vs Region 4'over65*region 0 0 1 -1 / exp;
+run;
+
+/**9**/
+data sale;
+	set sashelp.prdsale;
+	if predict eq 0 then ratio = 1000;
+		else 	ratio = actual/predict;
+	diff = actual-predict;
+run;
+
+proc format;
+	value diff
+	0-high = 'Exceeds Prediction'
+	other = 'Less than Predicted'
+	;
+run;
+
+proc means data=sashelp.prdsale q1 median q3;
+	var predict;
+	class quarter;
+run;
+
+ods graphics off;
+proc logistic data=sale;
+	class quarter / param=glm;
+	model diff = predict|quarter;
+	format diff diff.;
+	lsmeans quarter / diff adjust=tukey exp at predict=250 lines alpha=0.10;
+	lsmeans quarter / diff adjust=tukey exp at predict=500 lines alpha=0.10;
+	lsmeans quarter / diff adjust=tukey exp at predict=750 lines alpha=0.10;
+	estimate 'Predict Effect, Quarter 1 vs Quarter 2' predict*quarter 1 -1 0 0 / exp;
+	estimate 'Predict Effect, Quarter 1 vs Quarter 3' predict*quarter 1 0 -1 0 / exp;
+	estimate 'Predict Effect, Quarter 1 vs Quarter 4' predict*quarter 1 0 0 -1 / exp;
+	estimate 'Predict Effect, Quarter 2 vs Quarter 3' predict*quarter 0 1 -1 0 / exp;
+	estimate 'Predict Effect, Quarter 2 vs Quarter 4' predict*quarter 0 1 0 -1 / exp;
+	estimate 'Predict Effect, Quarter 3 vs Quarter 4' predict*quarter 0 0 1 -1 / exp;
+run;
